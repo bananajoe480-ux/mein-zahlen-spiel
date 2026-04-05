@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zahlenraten - Game</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --bg: #0f172a;
+            --card: #1e293b;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .game-container {
+            background: var(--card);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #334155;
+        }
+
+        .mode-select {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 15px 10px;
+            border: 2px solid #334155;
+            background: #2d3748;
+            color: #cbd5e1;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .btn:hover { border-color: var(--primary); color: white; }
+
+        #game-area, #result-area { display: none; }
+
+        input[type=number] {
+            width: 100px;
+            padding: 15px;
+            font-size: 2rem;
+            border-radius: 10px;
+            border: 3px solid #334155;
+            background: #0f172a;
+            color: white;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .arrow { font-size: 50px; margin: 10px; display: none; }
+        .arrow-up { color: #60a5fa; }
+        .arrow-down { color: #fbbf24; }
+
+        .result-img { max-width: 200px; margin: 20px 0; border-radius: 10px; }
+        
+        /* Versteckt die Standard-Pfeile im Input */
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <div id="setup-area">
+        <h1>Zahlenraten</h1>
+        <p>Wähle deine Schwierigkeit:</p>
+        <div class="mode-select">
+            <button class="btn" onclick="startGame(Infinity)">Leicht<br><small>unendlich</small></button>
+            <button class="btn" onclick="startGame(10)">Mittel<br><small>10 Versuche</small></button>
+            <button class="btn" onclick="startGame(5)">Schwer<br><small>5 Versuche</small></button>
+        </div>
+    </div>
+
+    <div id="game-area">
+        <div id="arrow-up" class="arrow arrow-up">↑</div>
+        <div id="arrow-down" class="arrow arrow-down">↓</div>
+        
+        <input type="number" id="guessInput" placeholder="?">
+        <br>
+        <button class="btn" style="background: var(--primary); color: white; width: 100%;" onclick="makeGuess()">Tipp abgeben</button>
+        <p id="stats"></p>
+    </div>
+
+    <div id="result-area">
+        <h2 id="result-text"></h2>
+        <img id="result-img" class="result-img" src="" alt="Ergebnis">
+        <br>
+        <button class="btn" style="width: 100%;" onclick="location.reload()">Neustart</button>
+    </div>
+</div>
+
+<script>
+    let secret;
+    let attemptsLeft;
+    let used = 0;
+
+    function startGame(max) {
+        secret = Math.floor(Math.random() * 100) + 1;
+        attemptsLeft = max;
+        used = 0;
+
+        document.getElementById('setup-area').style.display = 'none';
+        document.getElementById('game-area').style.display = 'block';
+        updateStats();
+    }
+
+    function updateStats() {
+        const text = (attemptsLeft === Infinity) 
+            ? `Versuche: ${used}` 
+            : `Verbleibende Versuche: ${attemptsLeft}`;
+        document.getElementById('stats').innerText = text;
+    }
+
+    function makeGuess() {
+        const input = document.getElementById('guessInput');
+        const val = parseInt(input.value);
+        const up = document.getElementById('arrow-up');
+        const down = document.getElementById('arrow-down');
+
+        if (isNaN(val)) return;
+
+        used++;
+        if (attemptsLeft !== Infinity) attemptsLeft--;
+
+        // Pfeile zurücksetzen
+        up.style.display = 'none';
+        down.style.display = 'none';
+
+        if (val === secret) {
+            showEnd(true);
+        } else {
+            if (val < secret) up.style.display = 'block';
+            else down.style.display = 'block';
+
+            if (attemptsLeft <= 0) {
+                showEnd(false);
+            }
+        }
+        
+        updateStats();
+        input.value = "";
+        input.focus();
+    }
+
+    function showEnd(win) {
+        document.getElementById('game-area').style.display = 'none';
+        document.getElementById('result-area').style.display = 'block';
+        
+        const resText = document.getElementById('result-text');
+        const resImg = document.getElementById('result-img');
+
+        if (win) {
+            resText.innerText = "GEWONNEN!";
+            resText.style.color = "var(--success)";
+            resImg.src = "krone.png";
+        } else {
+            resText.innerText = "VERLOREN! Die Zahl war " + secret;
+            resText.style.color = "var(--danger)";
+            resImg.src = "hand.png";
+        }
+    }
+</script>
+
+</body>
+</html>
